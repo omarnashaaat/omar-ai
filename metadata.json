@@ -1,0 +1,5 @@
+{
+  "name": "المساعد المصري الذكي",
+  "description": "An intelligent chat assistant that communicates in the Egyptian dialect, providing smart suggestions, real-time information, and a personalized experience. Inspired by ChatGPT and Gemini with a local Egyptian feel.",
+  "requestFramePermissions": []
+}

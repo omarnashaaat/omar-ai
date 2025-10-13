@@ -1,0 +1,21 @@
+{
+  "short_name": "المساعد المصري",
+  "name": "المساعد المصري الذكي",
+  "description": "An intelligent chat assistant that communicates in the Egyptian dialect, providing smart suggestions, real-time information, and a personalized experience. Inspired by ChatGPT and Gemini with a local Egyptian feel.",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#111827",
+  "background_color": "#111827"
+}

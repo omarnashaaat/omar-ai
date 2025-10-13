@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='192px' height='192px'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2360A5FA;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23A78BFA;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='12' cy='12' r='11' fill='url(%23grad1)'/%3E%3Cpath d='M12.75 4v5.25L18 12l-5.25 2.75V20l6.5-8-6.5-8zM5.5 12l4.75-2.5L5.5 7v5zm0 0v5l4.75-2.5L5.5 12z'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Omar AI</title>
+    <meta name="theme-color" content="#111827" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Cairo', sans-serif;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Cairo', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.24.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // This script injects the API key into the environment for the app to use.
+      window.process = {
+        env: {
+          API_KEY: 'AIzaSyBb3uhyXciaDZVT_EmCT-Vrr2BdL0GxGD4'
+        }
+      };
+    </script>
+    <script type="module">
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import ReactDOM from 'react-dom/client';
+import { GoogleGenAI } from '@google/genai';
+
+// --- BUNDLED CODE ---
+
+// From types.ts
+const MessageSender = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+};
+
+// From components/icons/PlusIcon.tsx
+const PlusIcon = (props) => (
+  React.createElement('svg', {
+    xmlns: "http://www.w3.org/2000/svg",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    ...props
+  }, React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M12 4v16m8-8H4" }))
+);
+
+// From components/icons/SearchIcon.tsx
+const SearchIcon = (props) => (
+  React.createElement('svg', {
+    xmlns: "http://www.w3.org/2000/svg",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    ...props
+  }, React.createElement('path', {
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+  }))
+);
+
+// From components/icons/SunIcon.tsx
+const SunIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 2, ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" })
+    )
+);
+
+// From components/icons/MoonIcon.tsx
+const MoonIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", strokeWidth: 2, ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" })
+    )
+);
+
+// From components/icons/ChatBubbleIcon.tsx
+const ChatBubbleIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.267c-.329.026-.65.166-.924.382l-3.12 2.257a.75.75 0 01-1.038-.605v-2.818a1.5 1.5 0 00-.916-1.36c-1.362-.64-2.86-1-4.426-1H5.25a2.25 2.25 0 01-2.25-2.25v-4.5a2.25 2.25 0 012.25-2.25h10.5a2.25 2.25 0 012.25 2.25v.167" })
+    )
+);
+
+// From components/icons/UserIcon.tsx
+const UserIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", ...props },
+        React.createElement('path', { fillRule: "evenodd", d: "M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z", clipRule: "evenodd" })
+    )
+);
+
+// From components/icons/LogoutIcon.tsx
+const LogoutIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" })
+    )
+);
+
+// From components/icons/SendIcon.tsx
+const SendIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", ...props },
+        React.createElement('path', { d: "M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" })
+    )
+);
+
+// From components/icons/GeminiIcon.tsx
+const GeminiIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", ...props },
+        React.createElement('path', { d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM12.75 4v5.25L18 12l-5.25 2.75V20l6.5-8-6.5-8zM5.5 12l4.75-2.5L5.5 7v5zm0 0v5l4.75-2.5L5.5 12z" })
+    )
+);
+
+// From components/ThemeToggle.tsx
+const ThemeToggle = ({ theme, toggleTheme }) => {
+  return (
+    React.createElement('button', {
+      onClick: toggleTheme,
+      className: "flex items-center justify-between w-full p-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+    },
+      React.createElement('span', null, theme === 'light' ? 'الوضع النهاري' : 'الوضع الليلي'),
+      theme === 'light' ? React.createElement(SunIcon, { className: "w-5 h-5 text-yellow-500" }) : React.createElement(MoonIcon, { className: "w-5 h-5 text-blue-300" })
+    )
+  );
+};
+
+// From components/Sidebar.tsx
+const Sidebar = ({
+  userName,
+  onLogout,
+  conversations,
+  activeConversationId,
+  onNewConversation,
+  onSelectConversation,
+  onDeleteConversation,
+  onSearch,
+  theme,
+  toggleTheme,
+  isOpen,
+  setIsOpen,
+}) => {
+  return (
+    React.createElement(React.Fragment, null,
+      React.createElement('div', { className: `fixed lg:relative inset-y-0 right-0 z-30 flex flex-col h-full w-64 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} lg:translate-x-0` },
+        React.createElement('div', { className: "flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700" },
+          React.createElement('button', {
+            onClick: onNewConversation,
+            className: "flex items-center gap-2 w-full p-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          },
+            React.createElement(PlusIcon, { className: "w-5 h-5" }),
+            "محادثة جديدة"
+          )
+        ),
+        React.createElement('div', { className: "p-4" },
+          React.createElement('div', { className: "relative" },
+            React.createElement('input', {
+              type: "text",
+              placeholder: "ابحث في المحادثات...",
+              onChange: (e) => onSearch(e.target.value),
+              className: "w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            }),
+            React.createElement(SearchIcon, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" })
+          )
+        ),
+        React.createElement('nav', { className: "flex-1 overflow-y-auto px-4 pb-4" },
+          React.createElement('h3', { className: "px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider" }, "المحادثات"),
+          React.createElement('ul', { className: "mt-2 space-y-2" },
+            conversations.map((conv) => (
+              React.createElement('li', { key: conv.id },
+                React.createElement('div', {
+                  onClick: () => onSelectConversation(conv.id),
+                  className: `flex items-center justify-between p-2 rounded-lg cursor-pointer group ${activeConversationId === conv.id ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`
+                },
+                  React.createElement('div', { className: "flex items-center gap-3" },
+                     React.createElement(ChatBubbleIcon, { className: "w-5 h-5" }),
+                     React.createElement('span', { className: "truncate text-sm font-medium" }, conv.title)
+                  ),
+                  React.createElement('button', {
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      onDeleteConversation(conv.id);
+                    },
+                    className: `text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ${activeConversationId === conv.id ? 'text-white/70 hover:text-white opacity-100' : ''}`
+                  },
+                     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 20 20", fill: "currentColor" },
+                        React.createElement('path', { fillRule: "evenodd", d: "M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z", clipRule: "evenodd" })
+                    )
+                  )
+                )
+              )
+            ))
+          )
+        ),
+        React.createElement('div', { className: "p-2 border-t border-gray-200 dark:border-gray-700 space-y-2" },
+          React.createElement(ThemeToggle, { theme: theme, toggleTheme: toggleTheme }),
+          React.createElement('div', { className: "flex items-center justify-between w-full p-2 rounded-lg" },
+              React.createElement('div', { className: "flex items-center gap-2 text-sm" },
+                  React.createElement('div', { className: "w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center" },
+                      React.createElement(UserIcon, { className: "w-4 h-4 text-gray-600 dark:text-gray-300" })
+                  ),
+                  React.createElement('span', { className: "font-semibold" }, userName)
+              ),
+              React.createElement('button', { onClick: onLogout, title: "تسجيل الخروج", className: "p-1 text-gray-500 hover:text-red-500 dark:hover:text-red-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" },
+                  React.createElement(LogoutIcon, { className: "w-5 h-5" })
+              )
+          )
+        )
+      ),
+      isOpen && React.createElement('div', { onClick: () => setIsOpen(false), className: "fixed inset-0 bg-black/30 z-20 lg:hidden" })
+    )
+  );
+};
+
+// From components/Message.tsx
+const MessageBubble = ({ message }) => {
+  const isUser = message.sender === MessageSender.USER;
+
+  const formatText = (text) => {
+    const lines = text.split('\n').map((line, index) => (
+      React.createElement(React.Fragment, { key: index },
+        line,
+        React.createElement('br', null)
+      )
+    ));
+    return React.createElement('p', null, lines);
+  };
+
+  return (
+    React.createElement('div', { className: `flex items-start gap-4 ${isUser ? 'justify-end' : 'justify-start'}` },
+      !isUser && (
+        React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white" },
+            React.createElement(GeminiIcon, { className: "w-5 h-5" })
+        )
+      ),
+      React.createElement('div', { className: `max-w-xl ${isUser ? 'order-1' : 'order-2'}` },
+        React.createElement('div', {
+          className: `px-4 py-3 rounded-2xl shadow-sm ${ isUser ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'}`
+        },
+          message.image && (
+            React.createElement('img', { 
+              src: message.image, 
+              alt: "User upload", 
+              className: "rounded-lg mb-2 max-w-xs max-h-64 object-contain"
+            })
+          ),
+          React.createElement('div', { className: "prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap" },
+            formatText(message.text)
+          )
+        ),
+        message.sources && message.sources.length > 0 && (
+            React.createElement('div', { className: "mt-2 text-xs text-gray-500 dark:text-gray-400" },
+                React.createElement('h4', { className: "font-semibold mb-1" }, "المصادر:"),
+                React.createElement('ul', { className: "list-disc list-inside space-y-1" },
+                message.sources.map((source, index) => (
+                    React.createElement('li', { key: index, className: "truncate" },
+                        React.createElement('a', { 
+                            href: source.uri, 
+                            target: "_blank", 
+                            rel: "noopener noreferrer", 
+                            className: "text-blue-500 hover:underline"
+                        }, source.title || source.uri)
+                    )
+                ))
+                )
+            )
+        )
+      ),
+      isUser && (
+        React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center order-2" },
+            React.createElement(UserIcon, { className: "w-5 h-5 text-gray-600 dark:text-gray-300" })
+        )
+      )
+    )
+  );
+};
+
+// From components/ChatView.tsx
+const PaperclipIcon = (props) => (
+  React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
+    React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.122 2.122l7.81-7.81" })
+  )
+);
+const CloseIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 2, stroke: "currentColor", ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M6 18L18 6M6 6l12 12" })
+    )
+);
+const TypingIndicator = () => (
+    React.createElement('div', { className: "flex items-center space-x-2 rtl:space-x-reverse self-start" },
+        React.createElement('div', { className: "px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700" },
+            React.createElement('div', { className: "flex items-center justify-center space-x-1 rtl:space-x-reverse" },
+                React.createElement('span', { className: "w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]" }),
+                React.createElement('span', { className: "w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]" }),
+                React.createElement('span', { className: "w-2 h-2 bg-gray-500 rounded-full animate-bounce" })
+            )
+        ),
+        React.createElement('span', { className: "text-sm text-gray-500 dark:text-gray-400" }, "المساعد بيكتب...")
+    )
+);
+const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream }) => {
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageDataUrl, setImageDataUrl] = useState(null);
+  const messagesEndRef = useRef(null);
+  const aiRef = useRef(null);
+  const fileInputRef = useRef(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation.messages, isLoading]);
+  useEffect(() => {
+    if (imageFile) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImageDataUrl(reader.result);
+        };
+        reader.readAsDataURL(imageFile);
+    } else {
+        setImageDataUrl(null);
+    }
+  }, [imageFile]);
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+    }
+    e.target.value = '';
+  };
+  const removeImage = () => {
+    setImageFile(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+  const fileToGenerativePart = async (file) => {
+    const base64EncodedDataPromise = new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(file);
+    });
+    return {
+      inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+    };
+  };
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    if ((!input.trim() && !imageFile) || isLoading) return;
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: input,
+      sender: MessageSender.USER,
+      image: imageDataUrl ?? undefined,
+    };
+    addMessage(conversation.id, userMessage);
+    setInput('');
+    setImageFile(null);
+    setIsLoading(true);
+    setError(null);
+    try {
+        if (!aiRef.current) {
+            if (!process.env.API_KEY) {
+                throw new Error("API_KEY environment variable not set.");
+            }
+            aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        }
+        
+        const contents = conversation.messages.map(msg => {
+            const parts = [];
+            if (msg.image) {
+                const [meta, base64Data] = msg.image.split(',');
+                if (base64Data) {
+                    const mimeTypeMatch = meta.match(/data:(.*?);base64/);
+                    const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
+                    parts.push({ inlineData: { data: base64Data, mimeType } });
+                }
+            }
+            if (msg.text) {
+                parts.push({ text: msg.text });
+            }
+            return {
+                role: msg.sender === 'user' ? 'user' : 'model',
+                parts
+            };
+        });
+        const userParts = [];
+        if (imageFile) {
+            const imagePart = await fileToGenerativePart(imageFile);
+            userParts.push(imagePart);
+        }
+        if (input.trim()) {
+            userParts.push({ text: input });
+        }
+        contents.push({ role: 'user', parts: userParts });
+        const result = await aiRef.current.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents,
+            config: {
+                systemInstruction: `أنت مساعد ذكي اسمك 'المصري'. تتحدث باللهجة المصرية العامية بأسلوب ودود ومرح ودمك خفيف. تعلم من المستخدم وتذكر اسمه (${userName}) وتفاصيل محادثاتكم السابقة. حلل مزاجه ورد بلطف. اقترح اقتراحات ذكية ومفيدة. استخدم إيموجيز مصرية مناسبة مثل 👑, 😎, ❤️, 🇪🇬. عند السؤال عن معلومات حديثة أو الطقس أو العملات، استخدم بحث جوجل وقدم إجابة مختصرة ومصادرها.`,
+                tools: [{googleSearch: {}}]
+            },
+        });
+        let assistantMessageId = `msg-assistant-${Date.now()}`;
+        for await (const chunk of result) {
+            const chunkText = chunk.text;
+            if (chunkText) {
+                const groundingChunks = chunk.candidates?.[0]?.groundingMetadata?.groundingChunks;
+                const sources = groundingChunks?.map((c) => ({
+                    uri: c.web.uri,
+                    title: c.web.title,
+                }));
+                updateAssistantMessageStream(conversation.id, chunkText, assistantMessageId, sources);
+            }
+        }
+    } catch (err) {
+        console.error("Gemini API error:", err);
+        setError(`حصلت مشكلة: ${err.message}. اتأكد من مفتاح الـ API.`);
+        const errorMessage = {
+          id: `msg-error-${Date.now()}`,
+          text: `آسف، حصلت مشكلة تقنية ومش هقدر أرد دلوقتي. 😟`,
+          sender: MessageSender.ASSISTANT
+        };
+        addMessage(conversation.id, errorMessage);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName]);
+  return (
+    React.createElement('div', { className: "flex flex-col h-full bg-gray-50 dark:bg-gray-900" },
+      React.createElement('div', { className: "flex-1 overflow-y-auto p-6 space-y-6" },
+          conversation.messages.length === 0 && !isLoading && (
+              React.createElement('div', { className: "text-center text-gray-400 mt-20" },
+                  React.createElement('h1', { className: "text-3xl font-bold" }, "Omar AI"),
+                  React.createElement('p', { className: "mt-2" }, `أهلاً يا ${userName}! عامل إيه؟ اسألني أي حاجة!`)
+              )
+          ),
+        conversation.messages.map((msg) => (
+          React.createElement(MessageBubble, { key: msg.id, message: msg })
+        )),
+        isLoading && React.createElement(TypingIndicator, null),
+        React.createElement('div', { ref: messagesEndRef })
+      ),
+      React.createElement('div', { className: "p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700" },
+        error && React.createElement('p', { className: "text-red-500 text-center text-sm mb-2" }, error),
+        imageDataUrl && (
+            React.createElement('div', { className: "p-2 relative w-28 h-28 border border-gray-200 dark:border-gray-600 rounded-lg mb-2" },
+                React.createElement('img', { src: imageDataUrl, alt: "Preview", className: "w-full h-full object-cover rounded-md" }),
+                React.createElement('button', { 
+                    onClick: removeImage, 
+                    className: "absolute top-0 right-0 -m-2 bg-gray-800 text-white rounded-full p-1 leading-none hover:bg-red-500 transition-colors", 
+                    "aria-label": "Remove image"
+                },
+                    React.createElement(CloseIcon, { className: "w-4 h-4" })
+                )
+            )
+        ),
+        React.createElement('form', { onSubmit: handleSubmit, className: "flex items-center space-x-2 rtl:space-x-reverse" },
+          React.createElement('input', {
+            type: "file",
+            ref: fileInputRef,
+            onChange: handleImageChange,
+            accept: "image/*",
+            className: "hidden"
+          }),
+          React.createElement('button', {
+            type: "button",
+            onClick: () => fileInputRef.current?.click(),
+            disabled: isLoading,
+            className: "p-3 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors",
+            "aria-label": "Attach image"
+          },
+            React.createElement(PaperclipIcon, { className: "w-5 h-5" })
+          ),
+          React.createElement('input', {
+            type: "text",
+            value: input,
+            onChange: (e) => setInput(e.target.value),
+            placeholder: "اكتب رسالتك هنا...",
+            disabled: isLoading,
+            className: "flex-1 w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          }),
+          React.createElement('button', {
+            type: "submit",
+            disabled: isLoading || (!input.trim() && !imageFile),
+            className: "p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+          },
+            React.createElement(SendIcon, { className: "w-5 h-5" })
+          )
+        )
+      )
+    )
+  );
+};
+
+// From components/SearchView.tsx
+const SearchView = ({ conversations, query, onSelectConversation }) => {
+    const searchResults = useMemo(() => {
+        if (!query) return [];
+        const results = [];
+        conversations.forEach(conv => {
+            conv.messages.forEach(msg => {
+                if(msg.text.toLowerCase().includes(query.toLowerCase())) {
+                    results.push({
+                        conversationId: conv.id,
+                        conversationTitle: conv.title,
+                        message: msg
+                    });
+                }
+            });
+        });
+        return results;
+    }, [query, conversations]);
+    if (!query) {
+        return (
+            React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-gray-400" },
+                React.createElement(SearchIcon, { className: "w-16 h-16 mb-4" }),
+                React.createElement('h2', { className: "text-xl font-semibold" }, "ابحث في محادثاتك السابقة"),
+                React.createElement('p', null, "اكتب في مربع البحث اللي في الجنب عشان تلاقي اللي بتدور عليه.")
+            )
+        );
+    }
+    return (
+        React.createElement('div', { className: "flex flex-col h-full bg-gray-50 dark:bg-gray-900" },
+            React.createElement('header', { className: "p-4 border-b border-gray-200 dark:border-gray-700" },
+                React.createElement('h1', { className: "text-xl font-semibold" },
+                    "نتائج البحث عن: ", React.createElement('span', { className: "text-blue-500" }, `"${query}"`)
+                ),
+                React.createElement('p', { className: "text-sm text-gray-500 dark:text-gray-400" },
+                    `تم العثور على ${searchResults.length} نتيجة.`
+                )
+            ),
+            React.createElement('div', { className: "flex-1 overflow-y-auto p-6" },
+                searchResults.length > 0 ? (
+                    React.createElement('div', { className: "space-y-4" },
+                        searchResults.map((result, index) => (
+                           React.createElement('div', { key: `${result.conversationId}-${result.message.id}-${index}`, 
+                                 onClick: () => onSelectConversation(result.conversationId),
+                                 className: "p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md cursor-pointer transition-shadow"},
+                                React.createElement('p', { className: "text-sm font-semibold text-blue-500 dark:text-blue-400 mb-1" }, result.conversationTitle),
+                                React.createElement('div', { className: "flex items-start gap-3" },
+                                    React.createElement('span', { className: "text-sm font-bold text-gray-600 dark:text-gray-300" },
+                                        result.message.sender === MessageSender.USER ? "أنت:" : "المساعد:"
+                                    ),
+                                    React.createElement('p', { className: "text-sm text-gray-700 dark:text-gray-200 line-clamp-3" },
+                                        result.message.text
+                                    )
+                                )
+                           )
+                        ))
+                    )
+                ) : (
+                    React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-gray-400 text-center" },
+                        React.createElement('p', { className: "text-lg" }, "مفيش نتائج للبحث ده."),
+                        React.createElement('p', { className: "text-sm" }, "حاول تدور بكلمة تانية.")
+                    )
+                )
+            )
+        )
+    );
+};
+
+// From components/Login.tsx
+const Login = ({ onLogin }) => {
+  const [name, setName] = useState('');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onLogin(name.trim());
+    }
+  };
+  return (
+    React.createElement('div', { className: "flex items-center justify-center h-screen w-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200" },
+      React.createElement('div', { className: "w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg text-center" },
+        React.createElement('div', { className: "flex justify-center" },
+          React.createElement('div', { className: "w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white" },
+            React.createElement(GeminiIcon, { className: "w-10 h-10" })
+          )
+        ),
+        React.createElement('h1', { className: "text-3xl font-bold" }, "Omar AI"),
+        React.createElement('p', { className: "text-gray-500 dark:text-gray-400" }, "عشان أقدر أساعدك بشكل أفضل، قوللي اسمك إيه؟"),
+        React.createElement('form', { onSubmit: handleSubmit, className: "space-y-6" },
+          React.createElement('input', {
+            type: "text",
+            value: name,
+            onChange: (e) => setName(e.target.value),
+            placeholder: "اكتب اسمك هنا...",
+            className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center",
+            required: true,
+            autoFocus: true
+          }),
+          React.createElement('button', {
+            type: "submit",
+            disabled: !name.trim(),
+            className: "w-full px-4 py-3 font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+          }, "يلا بينا!")
+        )
+      )
+    )
+  );
+};
+
+// From App.tsx
+const App = () => {
+  const [theme, setTheme] = useState('dark');
+  const [userName, setUserName] = useState(null);
+  const [isLoadingApp, setIsLoadingApp] = useState(true);
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [viewMode, setViewMode] = useState('chat');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  useEffect(() => {
+    const savedUserName = localStorage.getItem('userName');
+    if (savedUserName) {
+      setUserName(savedUserName);
+    }
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+       setTheme(prefersDark ? 'dark' : 'light');
+    }
+    try {
+      const savedConversations = localStorage.getItem('conversations');
+      if (savedConversations) {
+        const parsedConversations = JSON.parse(savedConversations);
+        if (parsedConversations.length > 0) {
+            setConversations(parsedConversations);
+            setActiveConversationId(parsedConversations[0].id);
+        } else {
+            handleNewConversation();
+        }
+      } else {
+        handleNewConversation();
+      }
+    } catch (error) {
+      console.error("Failed to load conversations from localStorage:", error);
+      handleNewConversation();
+    } finally {
+        setIsLoadingApp(false);
+    }
+  }, []);
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+  useEffect(() => {
+    if (!isLoadingApp) {
+        localStorage.setItem('conversations', JSON.stringify(conversations));
+    }
+  }, [conversations, isLoadingApp]);
+  const handleLogin = useCallback((name) => {
+    setUserName(name);
+    localStorage.setItem('userName', name);
+  }, []);
+  const handleLogout = useCallback(() => {
+    setUserName(null);
+    localStorage.removeItem('userName');
+  }, []);
+  const toggleTheme = useCallback(() => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  }, []);
+  const handleNewConversation = useCallback(() => {
+    const newConversation = {
+      id: `conv-${Date.now()}`,
+      title: 'محادثة جديدة',
+      messages: [],
+    };
+    setConversations(prev => [newConversation, ...prev]);
+    setActiveConversationId(newConversation.id);
+    setViewMode('chat');
+  }, []);
+  const selectConversation = useCallback((id) => {
+    setActiveConversationId(id);
+    setViewMode('chat');
+  }, []);
+  const deleteConversation = useCallback((id) => {
+    setConversations(prev => {
+        const newConversations = prev.filter(c => c.id !== id);
+        if (activeConversationId === id) {
+            if (newConversations.length > 0) {
+                setActiveConversationId(newConversations[0].id);
+            } else {
+                const newConv = { id: `conv-${Date.now()}`, title: 'محادثة جديدة', messages: [] };
+                setActiveConversationId(newConv.id);
+                return [newConv];
+            }
+        }
+        return newConversations;
+    });
+  }, [activeConversationId]);
+  const addMessageToConversation = useCallback((conversationId, message) => {
+      setConversations(prev => 
+          prev.map(conv => {
+              if (conv.id === conversationId) {
+                  const updatedMessages = [...conv.messages, message];
+                  const newTitle = conv.messages.length === 0 && message.sender === MessageSender.USER 
+                      ? message.text.substring(0, 30) 
+                      : conv.title;
+                  return { ...conv, title: newTitle, messages: updatedMessages };
+              }
+              return conv;
+          })
+      );
+  }, []);
+  const updateAssistantMessageStream = useCallback((conversationId, chunk, messageId, sources) => {
+      setConversations(prev =>
+          prev.map(conv => {
+              if (conv.id === conversationId) {
+                  const newMessages = [...conv.messages];
+                  const lastMessage = newMessages[newMessages.length - 1];
+                  if (lastMessage && lastMessage.id === messageId && lastMessage.sender === MessageSender.ASSISTANT) {
+                      lastMessage.text += chunk;
+                      if (sources) {
+                        lastMessage.sources = sources;
+                      }
+                  } else {
+                       newMessages.push({ id: messageId, text: chunk, sender: MessageSender.ASSISTANT, sources });
+                  }
+                  return { ...conv, messages: newMessages };
+              }
+              return conv;
+          })
+      );
+  }, []);
+  const activeConversation = useMemo(() => {
+    return conversations.find((c) => c.id === activeConversationId);
+  }, [conversations, activeConversationId]);
+  const handleSearch = useCallback((query) => {
+    setSearchQuery(query);
+    if(query) {
+      setViewMode('search');
+    } else {
+      setViewMode('chat');
+    }
+  }, []);
+  if (isLoadingApp) {
+      return React.createElement('div', { className: "flex h-screen w-screen bg-gray-100 dark:bg-gray-900" });
+  }
+  if (!userName) {
+    return React.createElement(Login, { onLogin: handleLogin });
+  }
+  return (
+    React.createElement('div', { className: "flex h-screen w-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 overflow-hidden" },
+        React.createElement(Sidebar, {
+            userName: userName,
+            onLogout: handleLogout,
+            conversations: conversations,
+            activeConversationId: activeConversationId,
+            onNewConversation: handleNewConversation,
+            onSelectConversation: selectConversation,
+            onDeleteConversation: deleteConversation,
+            onSearch: handleSearch,
+            theme: theme,
+            toggleTheme: toggleTheme,
+            isOpen: isSidebarOpen,
+            setIsOpen: setSidebarOpen
+        }),
+        React.createElement('main', { className: "flex-1 flex flex-col transition-all duration-300" },
+            React.createElement('div', { className: "flex-shrink-0 lg:hidden p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" },
+                React.createElement('button', { onClick: () => setSidebarOpen(!isSidebarOpen) },
+                    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-6 w-6", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" },
+                        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 6h16M4 12h16M4 18h16" })
+                    )
+                )
+            ),
+            viewMode === 'chat' && activeConversation ? (
+                React.createElement(ChatView, {
+                    userName: userName,
+                    conversation: activeConversation,
+                    addMessage: addMessageToConversation,
+                    updateAssistantMessageStream: updateAssistantMessageStream
+                })
+            ) : (
+                React.createElement(SearchView, { 
+                    conversations: conversations, 
+                    query: searchQuery,
+                    onSelectConversation: selectConversation
+                })
+            )
+        )
+    )
+  );
+};
+
+// From index.tsx
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  React.createElement(React.StrictMode, null, React.createElement(App, null))
+);
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
