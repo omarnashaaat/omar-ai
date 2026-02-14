@@ -55,6 +55,9 @@ import { GoogleGenAI } from '@google/genai';
 // Default API Key - Set to empty to force user to provide a valid one
 const DEFAULT_API_KEY = '';
 
+// Known bad key to block
+const BAD_KEY = 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE';
+
 // From types.ts
 const MessageSender = {
   USER: 'user',
@@ -223,7 +226,13 @@ const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedMo
                 className: "px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             }, "إلغاء"),
             React.createElement('button', {
-                onClick: () => onSave(key),
+                onClick: () => {
+                     if (key === BAD_KEY) {
+                         alert("هذا المفتاح تم إيقافه من جوجل. من فضلك احصل على مفتاح جديد مجاناً.");
+                         return;
+                     }
+                     onSave(key);
+                },
                 className: "px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30"
             }, "حفظ التغييرات")
         )
@@ -837,14 +846,16 @@ const App = () => {
        setTheme(prefersDark ? 'dark' : 'light');
     }
     const savedApiKey = localStorage.getItem('gemini_api_key');
-    if (savedApiKey) {
+    if (savedApiKey && savedApiKey !== BAD_KEY) {
         setApiKey(savedApiKey);
     } else {
-        setApiKey(DEFAULT_API_KEY);
-        // If no saved key and no default key, open settings automatically
-        if (!DEFAULT_API_KEY) {
-            setSettingsOpen(true);
+        // If the bad key is found, remove it immediately
+        if (savedApiKey === BAD_KEY) {
+            localStorage.removeItem('gemini_api_key');
         }
+        setApiKey('');
+        // Automatically open settings if no valid key is found
+        setSettingsOpen(true);
     }
     const savedModel = localStorage.getItem('gemini_model');
     if (savedModel) {
