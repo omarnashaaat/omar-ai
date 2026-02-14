@@ -227,11 +227,12 @@ const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedMo
             }, "إلغاء"),
             React.createElement('button', {
                 onClick: () => {
-                     if (key === BAD_KEY) {
+                     const trimmedKey = key.trim();
+                     if (trimmedKey === BAD_KEY) {
                          alert("هذا المفتاح تم إيقافه من جوجل. من فضلك احصل على مفتاح جديد مجاناً.");
                          return;
                      }
-                     onSave(key);
+                     onSave(trimmedKey);
                 },
                 className: "px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30"
             }, "حفظ التغييرات")
@@ -464,7 +465,7 @@ const TypingIndicator = () => (
         React.createElement('span', { className: "text-sm text-gray-500 dark:text-gray-400" }, "المساعد بيكتب...")
     )
 );
-const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, apiKey, openSettings, model }) => {
+const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, apiKey, openSettings, onInvalidApiKey, model }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -527,6 +528,16 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     if (!currentApiKey) {
         setError("API Key مطلوب. يرجى إدخاله من الإعدادات.");
         openSettings();
+        return;
+    }
+    
+    // Force invalidation if key is known bad
+    if (currentApiKey.trim() === BAD_KEY) {
+        if (onInvalidApiKey) onInvalidApiKey();
+        else {
+             localStorage.removeItem('gemini_api_key');
+             openSettings();
+        }
         return;
     }
 
@@ -598,9 +609,10 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
         let friendlyError = "حصلت مشكلة تقنية.";
         let shouldOpenSettings = false;
 
-        if (err.message && (err.message.includes("403") || err.message.includes("suspended") || err.message.includes("API key"))) {
-             friendlyError = "مفتاح الـ API غير صالح أو تم إيقافه. يرجى التحقق من الإعدادات.";
-             shouldOpenSettings = true;
+        if (err.message && (err.message.includes("403") || err.message.includes("suspended") || err.message.includes("API key") || err.message.includes("400"))) {
+             friendlyError = "مفتاح الـ API غير صالح أو تم إيقافه. يرجى إدخال مفتاح جديد.";
+             if (onInvalidApiKey) onInvalidApiKey();
+             else shouldOpenSettings = true;
         } else {
              try {
                 // Attempt to parse JSON error message from SDK
@@ -610,7 +622,10 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
                     const parsed = JSON.parse(rawDetails);
                     if (parsed.error && parsed.error.message) {
                         friendlyError = parsed.error.message;
-                         if (friendlyError.includes("API key")) shouldOpenSettings = true;
+                         if (friendlyError.includes("API key")) {
+                             if (onInvalidApiKey) onInvalidApiKey();
+                             else shouldOpenSettings = true;
+                         }
                     } else {
                          friendlyError = err.message;
                     }
@@ -637,7 +652,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     } finally {
         setIsLoading(false);
     }
-  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, apiKey, model, openSettings]);
+  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, apiKey, model, openSettings, onInvalidApiKey]);
   
   return (
     React.createElement('div', { className: "flex flex-col h-full bg-gray-50 dark:bg-gray-900" },
@@ -907,6 +922,12 @@ const App = () => {
       localStorage.setItem('gemini_api_key', defaultKey);
   }, []);
 
+  const handleInvalidApiKey = useCallback(() => {
+    setApiKey('');
+    localStorage.removeItem('gemini_api_key');
+    setSettingsOpen(true);
+  }, []);
+
   const handleModelChange = useCallback((newModel) => {
       setModel(newModel);
       localStorage.setItem('gemini_model', newModel);
@@ -1069,6 +1090,7 @@ const App = () => {
                     updateAssistantMessageStream: updateAssistantMessageStream,
                     apiKey: apiKey,
                     openSettings: () => setSettingsOpen(true),
+                    onInvalidApiKey: handleInvalidApiKey,
                     model: model
                 })
             ) : (
