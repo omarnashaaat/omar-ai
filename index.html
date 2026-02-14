@@ -435,10 +435,33 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
         }
     } catch (err) {
         console.error("Gemini API error:", err);
-        setError(`حصلت مشكلة: ${err.message}. اتأكد من مفتاح الـ API.`);
+        let friendlyError = "حصلت مشكلة تقنية.";
+        if (err.message && (err.message.includes("403") || err.message.includes("suspended") || err.message.includes("API key"))) {
+             friendlyError = "مفتاح الـ API غير صالح أو تم إيقافه. يرجى التحقق من الإعدادات.";
+        } else {
+             try {
+                // Attempt to parse JSON error message from SDK
+                const startIndex = err.message.indexOf('{');
+                if (startIndex !== -1) {
+                    const rawDetails = err.message.substring(startIndex);
+                    const parsed = JSON.parse(rawDetails);
+                    if (parsed.error && parsed.error.message) {
+                        friendlyError = parsed.error.message;
+                    } else {
+                         friendlyError = err.message;
+                    }
+                } else {
+                    friendlyError = err.message;
+                }
+             } catch (e) {
+                 friendlyError = err.message || "خطأ غير معروف";
+             }
+        }
+        
+        setError(friendlyError);
         const errorMessage = {
           id: `msg-error-${Date.now()}`,
-          text: `آسف، حصلت مشكلة تقنية ومش هقدر أرد دلوقتي. 😟`,
+          text: `آسف، حصلت مشكلة: ${friendlyError} 😟`,
           sender: MessageSender.ASSISTANT
         };
         addMessage(conversation.id, errorMessage);
