@@ -49,6 +49,15 @@ import { GoogleGenAI } from '@google/genai';
 
 // --- BUNDLED CODE ---
 
+// Polyfill for process.env in browser environments
+if (typeof process === 'undefined') {
+  window.process = {
+    env: {
+      API_KEY: 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE',
+    },
+  };
+}
+
 // From types.ts
 const MessageSender = {
   USER: 'user',
