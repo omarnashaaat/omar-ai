@@ -52,8 +52,8 @@ import { GoogleGenAI } from '@google/genai';
 
 // --- BUNDLED CODE ---
 
-// Default API Key provided by user
-const DEFAULT_API_KEY = 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE';
+// Default API Key - Set to empty to force user to provide a valid one
+const DEFAULT_API_KEY = '';
 
 // From types.ts
 const MessageSender = {
@@ -174,23 +174,27 @@ const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedMo
         React.createElement('div', { className: "space-y-6" },
             React.createElement('div', null,
                 React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" }, "مفتاح Gemini API"),
-                React.createElement('div', { className: "flex gap-2" },
-                    React.createElement('input', {
-                        type: "text",
-                        value: key,
-                        onChange: (e) => setKey(e.target.value),
-                        placeholder: "AIzaSy...",
-                        className: "flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left"
-                    }),
-                    React.createElement('button', {
-                        onClick: () => { setKey(DEFAULT_API_KEY); onResetKey(DEFAULT_API_KEY); },
-                        className: "px-3 py-2 text-xs bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors",
-                        title: "استعادة المفتاح الافتراضي"
-                    }, "استعادة")
+                React.createElement('div', { className: "flex flex-col gap-3" },
+                   React.createElement('a', { 
+                        href: "https://aistudio.google.com/app/apikey", 
+                        target: "_blank", 
+                        className: "w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-center rounded-lg font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    }, 
+                        React.createElement('span', null, "احصل على مفتاح مجاني من جوجل"),
+                        React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" }))
+                    ),
+                    React.createElement('div', { className: "relative" },
+                        React.createElement('input', {
+                            type: "text",
+                            value: key,
+                            onChange: (e) => setKey(e.target.value),
+                            placeholder: "الصق المفتاح هنا (AIzaSy...)",
+                            className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left"
+                        })
+                    )
                 ),
-                React.createElement('p', { className: "text-xs text-gray-500 mt-1" },
-                    "احصل على مفتاحك مجاناً من ",
-                    React.createElement('a', { href: "https://aistudio.google.com/app/apikey", target: "_blank", className: "text-blue-500 hover:underline" }, "Google AI Studio")
+                React.createElement('p', { className: "text-xs text-gray-500 mt-2" },
+                    "المفتاح يتم حفظه في متصفحك فقط ولا يتم مشاركته."
                 )
             ),
             React.createElement('div', null,
@@ -837,6 +841,10 @@ const App = () => {
         setApiKey(savedApiKey);
     } else {
         setApiKey(DEFAULT_API_KEY);
+        // If no saved key and no default key, open settings automatically
+        if (!DEFAULT_API_KEY) {
+            setSettingsOpen(true);
+        }
     }
     const savedModel = localStorage.getItem('gemini_model');
     if (savedModel) {
