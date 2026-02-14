@@ -52,7 +52,7 @@ import { GoogleGenAI } from '@google/genai';
 
 // --- BUNDLED CODE ---
 
-// Default API Key (Fallback) - Note: This might be invalid, user should set their own.
+// Default API Key provided by user
 const DEFAULT_API_KEY = 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE';
 
 // From types.ts
@@ -137,6 +137,18 @@ const SpeakerIcon = (props) => (
     )
 );
 
+const DownloadIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" })
+    )
+);
+
+const SparklesIcon = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" })
+    )
+);
+
 // --- COMPONENTS ---
 
 const ThemeToggle = ({ theme, toggleTheme }) => {
@@ -151,7 +163,7 @@ const ThemeToggle = ({ theme, toggleTheme }) => {
   );
 };
 
-const SettingsModal = ({ isOpen, onClose, apiKey, onSave }) => {
+const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedModel, onModelChange }) => {
   const [key, setKey] = useState(apiKey);
   useEffect(() => { setKey(apiKey); }, [apiKey, isOpen]);
   if (!isOpen) return null;
@@ -159,31 +171,57 @@ const SettingsModal = ({ isOpen, onClose, apiKey, onSave }) => {
     React.createElement('div', { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" },
       React.createElement('div', { className: "bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-700 transform transition-all" },
         React.createElement('h2', { className: "text-xl font-bold mb-4 text-gray-800 dark:text-white" }, "إعدادات التطبيق"),
-        React.createElement('div', { className: "space-y-4" },
+        React.createElement('div', { className: "space-y-6" },
             React.createElement('div', null,
-                React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" }, "مفتاح Gemini API"),
-                React.createElement('input', {
-                    type: "text", // changed from password for easier editing
-                    value: key,
-                    onChange: (e) => setKey(e.target.value),
-                    placeholder: "AIzaSy...",
-                    className: "w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left"
-                }),
+                React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" }, "مفتاح Gemini API"),
+                React.createElement('div', { className: "flex gap-2" },
+                    React.createElement('input', {
+                        type: "text",
+                        value: key,
+                        onChange: (e) => setKey(e.target.value),
+                        placeholder: "AIzaSy...",
+                        className: "flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left"
+                    }),
+                    React.createElement('button', {
+                        onClick: () => { setKey(DEFAULT_API_KEY); onResetKey(DEFAULT_API_KEY); },
+                        className: "px-3 py-2 text-xs bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors",
+                        title: "استعادة المفتاح الافتراضي"
+                    }, "استعادة")
+                ),
                 React.createElement('p', { className: "text-xs text-gray-500 mt-1" },
                     "احصل على مفتاحك مجاناً من ",
                     React.createElement('a', { href: "https://aistudio.google.com/app/apikey", target: "_blank", className: "text-blue-500 hover:underline" }, "Google AI Studio")
                 )
+            ),
+            React.createElement('div', null,
+                React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" }, "نموذج الذكاء الاصطناعي"),
+                React.createElement('div', { className: "grid grid-cols-2 gap-2" },
+                    React.createElement('button', {
+                        onClick: () => onModelChange('gemini-3-flash-preview'),
+                        className: `p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${selectedModel === 'gemini-3-flash-preview' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`
+                    },
+                        React.createElement('span', { className: "font-bold text-sm" }, "Flash ⚡"),
+                        React.createElement('span', { className: "text-xs opacity-70" }, "سريع وخفيف")
+                    ),
+                    React.createElement('button', {
+                        onClick: () => onModelChange('gemini-3-pro-preview'),
+                        className: `p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${selectedModel === 'gemini-3-pro-preview' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`
+                    },
+                        React.createElement('span', { className: "font-bold text-sm" }, "Pro 🧠"),
+                        React.createElement('span', { className: "text-xs opacity-70" }, "ذكي جداً")
+                    )
+                )
             )
         ),
-        React.createElement('div', { className: "mt-6 flex justify-end gap-3" },
+        React.createElement('div', { className: "mt-8 flex justify-end gap-3" },
             React.createElement('button', {
                 onClick: onClose,
                 className: "px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             }, "إلغاء"),
             React.createElement('button', {
                 onClick: () => onSave(key),
-                className: "px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            }, "حفظ")
+                className: "px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30"
+            }, "حفظ التغييرات")
         )
       )
     )
@@ -199,12 +237,13 @@ const Sidebar = ({
   onNewConversation,
   onSelectConversation,
   onDeleteConversation,
+  onDownloadConversation, // NEW
   onSearch,
   theme,
   toggleTheme,
   isOpen,
   setIsOpen,
-  onOpenSettings // NEW
+  onOpenSettings
 }) => {
   return (
     React.createElement(React.Fragment, null,
@@ -242,16 +281,29 @@ const Sidebar = ({
                      React.createElement(ChatBubbleIcon, { className: "w-5 h-5" }),
                      React.createElement('span', { className: "truncate text-sm font-medium" }, conv.title)
                   ),
-                  React.createElement('button', {
-                    onClick: (e) => {
-                      e.stopPropagation();
-                      onDeleteConversation(conv.id);
-                    },
-                    className: `text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity ${activeConversationId === conv.id ? 'text-white/70 hover:text-white opacity-100' : ''}`
-                  },
-                     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 20 20", fill: "currentColor" },
-                        React.createElement('path', { fillRule: "evenodd", d: "M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z", clipRule: "evenodd" })
-                    )
+                  React.createElement('div', { className: "flex items-center opacity-0 group-hover:opacity-100 transition-opacity" },
+                     React.createElement('button', {
+                        onClick: (e) => {
+                          e.stopPropagation();
+                          onDownloadConversation(conv);
+                        },
+                        title: "تحميل المحادثة",
+                        className: `p-1 text-gray-400 hover:text-green-500 transition-colors ${activeConversationId === conv.id ? 'text-white/70 hover:text-white' : ''}`
+                      },
+                         React.createElement(DownloadIcon, { className: "w-4 h-4" })
+                      ),
+                      React.createElement('button', {
+                        onClick: (e) => {
+                          e.stopPropagation();
+                          onDeleteConversation(conv.id);
+                        },
+                        title: "حذف",
+                        className: `p-1 text-gray-400 hover:text-red-500 transition-colors ${activeConversationId === conv.id ? 'text-white/70 hover:text-white' : ''}`
+                      },
+                         React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 20 20", fill: "currentColor" },
+                            React.createElement('path', { fillRule: "evenodd", d: "M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z", clipRule: "evenodd" })
+                        )
+                      )
                   )
                 )
               )
@@ -399,7 +451,7 @@ const TypingIndicator = () => (
         React.createElement('span', { className: "text-sm text-gray-500 dark:text-gray-400" }, "المساعد بيكتب...")
     )
 );
-const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, apiKey, openSettings }) => {
+const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, apiKey, openSettings, model }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -461,6 +513,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     const currentApiKey = apiKey || DEFAULT_API_KEY;
     if (!currentApiKey) {
         setError("API Key مطلوب. يرجى إدخاله من الإعدادات.");
+        openSettings();
         return;
     }
 
@@ -508,7 +561,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
         }
         contents.push({ role: 'user', parts: userParts });
         const result = await aiRef.current.models.generateContentStream({
-            model: 'gemini-3-flash-preview',
+            model: model || 'gemini-3-flash-preview',
             contents,
             config: {
                 systemInstruction: `أنت مساعد ذكي اسمك 'المصري'. تتحدث باللهجة المصرية العامية بأسلوب ودود ومرح ودمك خفيف. تعلم من المستخدم وتذكر اسمه (${userName}) وتفاصيل محادثاتكم السابقة. حلل مزاجه ورد بلطف. اقترح اقتراحات ذكية ومفيدة. استخدم إيموجيز مصرية مناسبة مثل 👑, 😎, ❤️, 🇪🇬. عند السؤال عن معلومات حديثة أو الطقس أو العملات، استخدم بحث جوجل وقدم إجابة مختصرة ومصادرها.`,
@@ -530,8 +583,11 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     } catch (err) {
         console.error("Gemini API error:", err);
         let friendlyError = "حصلت مشكلة تقنية.";
+        let shouldOpenSettings = false;
+
         if (err.message && (err.message.includes("403") || err.message.includes("suspended") || err.message.includes("API key"))) {
              friendlyError = "مفتاح الـ API غير صالح أو تم إيقافه. يرجى التحقق من الإعدادات.";
+             shouldOpenSettings = true;
         } else {
              try {
                 // Attempt to parse JSON error message from SDK
@@ -541,6 +597,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
                     const parsed = JSON.parse(rawDetails);
                     if (parsed.error && parsed.error.message) {
                         friendlyError = parsed.error.message;
+                         if (friendlyError.includes("API key")) shouldOpenSettings = true;
                     } else {
                          friendlyError = err.message;
                     }
@@ -559,10 +616,15 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
           sender: MessageSender.ASSISTANT
         };
         addMessage(conversation.id, errorMessage);
+        
+        if (shouldOpenSettings) {
+            setTimeout(() => openSettings(), 1500);
+        }
+
     } finally {
         setIsLoading(false);
     }
-  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, apiKey]);
+  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, apiKey, model, openSettings]);
   
   return (
     React.createElement('div', { className: "flex flex-col h-full bg-gray-50 dark:bg-gray-900" },
@@ -570,7 +632,10 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
           conversation.messages.length === 0 && !isLoading && (
               React.createElement('div', { className: "text-center text-gray-400 mt-20" },
                   React.createElement('h1', { className: "text-3xl font-bold" }, "Omar AI"),
-                  React.createElement('p', { className: "mt-2" }, `أهلاً يا ${userName}! عامل إيه؟ اسألني أي حاجة!`)
+                  React.createElement('div', { className: "flex justify-center mt-2 gap-2 text-sm" },
+                     React.createElement('span', { className: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full" }, model === 'gemini-3-pro-preview' ? 'وضع الذكاء الفائق (Pro)' : 'الوضع السريع (Flash)')
+                  ),
+                  React.createElement('p', { className: "mt-4" }, `أهلاً يا ${userName}! عامل إيه؟ اسألني أي حاجة!`)
               )
           ),
         conversation.messages.map((msg) => (
@@ -753,6 +818,7 @@ const App = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [apiKey, setApiKey] = useState('');
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [model, setModel] = useState('gemini-3-flash-preview');
 
   useEffect(() => {
     const savedUserName = localStorage.getItem('userName');
@@ -771,6 +837,10 @@ const App = () => {
         setApiKey(savedApiKey);
     } else {
         setApiKey(DEFAULT_API_KEY);
+    }
+    const savedModel = localStorage.getItem('gemini_model');
+    if (savedModel) {
+        setModel(savedModel);
     }
 
     try {
@@ -811,6 +881,16 @@ const App = () => {
       setApiKey(key);
       localStorage.setItem('gemini_api_key', key);
       setSettingsOpen(false);
+  }, []);
+  
+  const handleResetKey = useCallback((defaultKey) => {
+      setApiKey(defaultKey);
+      localStorage.setItem('gemini_api_key', defaultKey);
+  }, []);
+
+  const handleModelChange = useCallback((newModel) => {
+      setModel(newModel);
+      localStorage.setItem('gemini_model', newModel);
   }, []);
 
   const handleLogin = useCallback((name) => {
@@ -853,6 +933,25 @@ const App = () => {
         return newConversations;
     });
   }, [activeConversationId]);
+
+  const handleDownloadConversation = useCallback((conversation) => {
+      if (!conversation) return;
+      const text = conversation.messages.map(msg => {
+          const sender = msg.sender === MessageSender.USER ? "أنت" : "المساعد";
+          return `${sender}: ${msg.text}\n-------------------`;
+      }).join('\n\n');
+      
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat-${conversation.title.replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+  }, []);
+
   const addMessageToConversation = useCallback((conversationId, message) => {
       setConversations(prev => 
           prev.map(conv => {
@@ -914,7 +1013,10 @@ const App = () => {
             isOpen: isSettingsOpen,
             onClose: () => setSettingsOpen(false),
             apiKey: apiKey,
-            onSave: handleSaveApiKey
+            onSave: handleSaveApiKey,
+            onResetKey: handleResetKey,
+            selectedModel: model,
+            onModelChange: handleModelChange
         }),
         React.createElement(Sidebar, {
             userName: userName,
@@ -924,6 +1026,7 @@ const App = () => {
             onNewConversation: handleNewConversation,
             onSelectConversation: selectConversation,
             onDeleteConversation: deleteConversation,
+            onDownloadConversation: handleDownloadConversation,
             onSearch: handleSearch,
             theme: theme,
             toggleTheme: toggleTheme,
@@ -946,7 +1049,8 @@ const App = () => {
                     addMessage: addMessageToConversation,
                     updateAssistantMessageStream: updateAssistantMessageStream,
                     apiKey: apiKey,
-                    openSettings: () => setSettingsOpen(true)
+                    openSettings: () => setSettingsOpen(true),
+                    model: model
                 })
             ) : (
                 React.createElement(SearchView, { 
