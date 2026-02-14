@@ -42,14 +42,6 @@
 </head>
   <body>
     <div id="root"></div>
-    <script>
-      // This script injects the API key into the environment for the app to use.
-      window.process = {
-        env: {
-          API_KEY: 'AIzaSyBb3uhyXciaDZVT_EmCT-Vrr2BdL0GxGD4'
-        }
-      };
-    </script>
     <script type="module">
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
@@ -422,7 +414,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
         }
         contents.push({ role: 'user', parts: userParts });
         const result = await aiRef.current.models.generateContentStream({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             contents,
             config: {
                 systemInstruction: `أنت مساعد ذكي اسمك 'المصري'. تتحدث باللهجة المصرية العامية بأسلوب ودود ومرح ودمك خفيف. تعلم من المستخدم وتذكر اسمه (${userName}) وتفاصيل محادثاتكم السابقة. حلل مزاجه ورد بلطف. اقترح اقتراحات ذكية ومفيدة. استخدم إيموجيز مصرية مناسبة مثل 👑, 😎, ❤️, 🇪🇬. عند السؤال عن معلومات حديثة أو الطقس أو العملات، استخدم بحث جوجل وقدم إجابة مختصرة ومصادرها.`,
@@ -742,12 +734,16 @@ const App = () => {
           prev.map(conv => {
               if (conv.id === conversationId) {
                   const newMessages = [...conv.messages];
-                  const lastMessage = newMessages[newMessages.length - 1];
+                  const lastMessageIndex = newMessages.length - 1;
+                  const lastMessage = newMessages[lastMessageIndex];
+
                   if (lastMessage && lastMessage.id === messageId && lastMessage.sender === MessageSender.ASSISTANT) {
-                      lastMessage.text += chunk;
-                      if (sources) {
-                        lastMessage.sources = sources;
-                      }
+                      const updatedMessage = {
+                          ...lastMessage,
+                          text: lastMessage.text + chunk,
+                          sources: sources || lastMessage.sources
+                      };
+                      newMessages[lastMessageIndex] = updatedMessage;
                   } else {
                        newMessages.push({ id: messageId, text: chunk, sender: MessageSender.ASSISTANT, sources });
                   }
