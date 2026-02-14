@@ -49,14 +49,8 @@ import { GoogleGenAI } from '@google/genai';
 
 // --- BUNDLED CODE ---
 
-// Polyfill for process.env in browser environments
-if (typeof process === 'undefined') {
-  window.process = {
-    env: {
-      API_KEY: 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE',
-    },
-  };
-}
+// Direct API Key definition to avoid process.env issues in browser
+const API_KEY = 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE';
 
 // From types.ts
 const MessageSender = {
@@ -389,10 +383,10 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     setError(null);
     try {
         if (!aiRef.current) {
-            if (!process.env.API_KEY) {
+            if (!API_KEY) {
                 throw new Error("API_KEY environment variable not set.");
             }
-            aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            aiRef.current = new GoogleGenAI({ apiKey: API_KEY });
         }
         
         const contents = conversation.messages.map(msg => {
