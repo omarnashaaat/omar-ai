@@ -52,12 +52,6 @@ import { GoogleGenAI } from '@google/genai';
 
 // --- BUNDLED CODE ---
 
-// Default API Key - Set to empty to force user to provide a valid one
-const DEFAULT_API_KEY = '';
-
-// Known bad key to block
-const BAD_KEY = 'AIzaSyAiyBjk9NurF7YV5NerqAGLU6KTO1L-aNE';
-
 // From types.ts
 const MessageSender = {
   USER: 'user',
@@ -148,7 +142,7 @@ const DownloadIcon = (props) => (
 
 const SparklesIcon = (props) => (
     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: 1.5, stroke: "currentColor", ...props },
-        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" })
+        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 00-1.423 1.423z" })
     )
 );
 
@@ -166,40 +160,13 @@ const ThemeToggle = ({ theme, toggleTheme }) => {
   );
 };
 
-const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedModel, onModelChange }) => {
-  const [key, setKey] = useState(apiKey);
-  useEffect(() => { setKey(apiKey); }, [apiKey, isOpen]);
+const SettingsModal = ({ isOpen, onClose, selectedModel, onModelChange }) => {
   if (!isOpen) return null;
   return (
     React.createElement('div', { className: "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" },
       React.createElement('div', { className: "bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-700 transform transition-all" },
         React.createElement('h2', { className: "text-xl font-bold mb-4 text-gray-800 dark:text-white" }, "إعدادات التطبيق"),
         React.createElement('div', { className: "space-y-6" },
-            React.createElement('div', null,
-                React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" }, "مفتاح Gemini API"),
-                React.createElement('div', { className: "flex flex-col gap-3" },
-                   React.createElement('a', { 
-                        href: "https://aistudio.google.com/app/apikey", 
-                        target: "_blank", 
-                        className: "w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-center rounded-lg font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                    }, 
-                        React.createElement('span', null, "احصل على مفتاح مجاني من جوجل"),
-                        React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" }, React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" }))
-                    ),
-                    React.createElement('div', { className: "relative" },
-                        React.createElement('input', {
-                            type: "text",
-                            value: key,
-                            onChange: (e) => setKey(e.target.value),
-                            placeholder: "الصق المفتاح هنا (AIzaSy...)",
-                            className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left"
-                        })
-                    )
-                ),
-                React.createElement('p', { className: "text-xs text-gray-500 mt-2" },
-                    "المفتاح يتم حفظه في متصفحك فقط ولا يتم مشاركته."
-                )
-            ),
             React.createElement('div', null,
                 React.createElement('label', { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" }, "نموذج الذكاء الاصطناعي"),
                 React.createElement('div', { className: "grid grid-cols-2 gap-2" },
@@ -223,19 +190,8 @@ const SettingsModal = ({ isOpen, onClose, apiKey, onSave, onResetKey, selectedMo
         React.createElement('div', { className: "mt-8 flex justify-end gap-3" },
             React.createElement('button', {
                 onClick: onClose,
-                className: "px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            }, "إلغاء"),
-            React.createElement('button', {
-                onClick: () => {
-                     const trimmedKey = key.trim();
-                     if (trimmedKey === BAD_KEY) {
-                         alert("هذا المفتاح تم إيقافه من جوجل. من فضلك احصل على مفتاح جديد مجاناً.");
-                         return;
-                     }
-                     onSave(trimmedKey);
-                },
                 className: "px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/30"
-            }, "حفظ التغييرات")
+            }, "تم")
         )
       )
     )
@@ -465,7 +421,7 @@ const TypingIndicator = () => (
         React.createElement('span', { className: "text-sm text-gray-500 dark:text-gray-400" }, "المساعد بيكتب...")
     )
 );
-const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, apiKey, openSettings, onInvalidApiKey, model }) => {
+const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageStream, model }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -494,7 +450,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
   // Re-initialize AI client if API Key changes
   useEffect(() => {
     aiRef.current = null;
-  }, [apiKey]);
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -523,24 +479,6 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     e.preventDefault();
     if ((!input.trim() && !imageFile) || isLoading) return;
     
-    // Check for API Key
-    const currentApiKey = apiKey || DEFAULT_API_KEY;
-    if (!currentApiKey) {
-        setError("API Key مطلوب. يرجى إدخاله من الإعدادات.");
-        openSettings();
-        return;
-    }
-    
-    // Force invalidation if key is known bad
-    if (currentApiKey.trim() === BAD_KEY) {
-        if (onInvalidApiKey) onInvalidApiKey();
-        else {
-             localStorage.removeItem('gemini_api_key');
-             openSettings();
-        }
-        return;
-    }
-
     const userMessage = {
       id: `msg-${Date.now()}`,
       text: input,
@@ -554,7 +492,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
     setError(null);
     try {
         if (!aiRef.current) {
-            aiRef.current = new GoogleGenAI({ apiKey: currentApiKey });
+            aiRef.current = new GoogleGenAI({ apiKey: process.env.API_KEY });
         }
         
         const contents = conversation.messages.map(msg => {
@@ -606,14 +544,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
         }
     } catch (err) {
         console.error("Gemini API error:", err);
-        let friendlyError = "حصلت مشكلة تقنية.";
-        let shouldOpenSettings = false;
-
-        if (err.message && (err.message.includes("403") || err.message.includes("suspended") || err.message.includes("API key") || err.message.includes("400"))) {
-             friendlyError = "مفتاح الـ API غير صالح أو تم إيقافه. يرجى إدخال مفتاح جديد.";
-             if (onInvalidApiKey) onInvalidApiKey();
-             else shouldOpenSettings = true;
-        } else {
+        let friendlyError = "حصلت مشكلة في الاتصال بالخادم. يرجى المحاولة لاحقاً.";
              try {
                 // Attempt to parse JSON error message from SDK
                 const startIndex = err.message.indexOf('{');
@@ -622,10 +553,6 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
                     const parsed = JSON.parse(rawDetails);
                     if (parsed.error && parsed.error.message) {
                         friendlyError = parsed.error.message;
-                         if (friendlyError.includes("API key")) {
-                             if (onInvalidApiKey) onInvalidApiKey();
-                             else shouldOpenSettings = true;
-                         }
                     } else {
                          friendlyError = err.message;
                     }
@@ -635,7 +562,6 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
              } catch (e) {
                  friendlyError = err.message || "خطأ غير معروف";
              }
-        }
         
         setError(friendlyError);
         const errorMessage = {
@@ -644,15 +570,11 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
           sender: MessageSender.ASSISTANT
         };
         addMessage(conversation.id, errorMessage);
-        
-        if (shouldOpenSettings) {
-            setTimeout(() => openSettings(), 1500);
-        }
 
     } finally {
         setIsLoading(false);
     }
-  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, apiKey, model, openSettings, onInvalidApiKey]);
+  }, [input, imageFile, imageDataUrl, isLoading, addMessage, updateAssistantMessageStream, conversation.id, conversation.messages, userName, model]);
   
   return (
     React.createElement('div', { className: "flex flex-col h-full bg-gray-50 dark:bg-gray-900" },
@@ -674,8 +596,7 @@ const ChatView = ({ userName, conversation, addMessage, updateAssistantMessageSt
       ),
       React.createElement('div', { className: "p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700" },
         error && React.createElement('div', { className: "flex items-center justify-between bg-red-50 text-red-600 p-2 rounded-lg mb-2 text-sm" },
-            React.createElement('span', null, error),
-            React.createElement('button', { onClick: openSettings, className: "underline font-bold" }, "تغيير المفتاح")
+            React.createElement('span', null, error)
         ),
         imageDataUrl && (
             React.createElement('div', { className: "p-2 relative w-28 h-28 border border-gray-200 dark:border-gray-600 rounded-lg mb-2" },
@@ -844,7 +765,6 @@ const App = () => {
   const [viewMode, setViewMode] = useState('chat');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [apiKey, setApiKey] = useState('');
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [model, setModel] = useState('gemini-3-flash-preview');
 
@@ -860,18 +780,9 @@ const App = () => {
        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
        setTheme(prefersDark ? 'dark' : 'light');
     }
-    const savedApiKey = localStorage.getItem('gemini_api_key');
-    if (savedApiKey && savedApiKey !== BAD_KEY) {
-        setApiKey(savedApiKey);
-    } else {
-        // If the bad key is found, remove it immediately
-        if (savedApiKey === BAD_KEY) {
-            localStorage.removeItem('gemini_api_key');
-        }
-        setApiKey('');
-        // Automatically open settings if no valid key is found
-        setSettingsOpen(true);
-    }
+    
+    // API Key logic removed - relying on process.env.API_KEY
+
     const savedModel = localStorage.getItem('gemini_model');
     if (savedModel) {
         setModel(savedModel);
@@ -911,23 +822,6 @@ const App = () => {
     }
   }, [conversations, isLoadingApp]);
   
-  const handleSaveApiKey = useCallback((key) => {
-      setApiKey(key);
-      localStorage.setItem('gemini_api_key', key);
-      setSettingsOpen(false);
-  }, []);
-  
-  const handleResetKey = useCallback((defaultKey) => {
-      setApiKey(defaultKey);
-      localStorage.setItem('gemini_api_key', defaultKey);
-  }, []);
-
-  const handleInvalidApiKey = useCallback(() => {
-    setApiKey('');
-    localStorage.removeItem('gemini_api_key');
-    setSettingsOpen(true);
-  }, []);
-
   const handleModelChange = useCallback((newModel) => {
       setModel(newModel);
       localStorage.setItem('gemini_model', newModel);
@@ -1052,9 +946,6 @@ const App = () => {
         React.createElement(SettingsModal, {
             isOpen: isSettingsOpen,
             onClose: () => setSettingsOpen(false),
-            apiKey: apiKey,
-            onSave: handleSaveApiKey,
-            onResetKey: handleResetKey,
             selectedModel: model,
             onModelChange: handleModelChange
         }),
@@ -1088,9 +979,7 @@ const App = () => {
                     conversation: activeConversation,
                     addMessage: addMessageToConversation,
                     updateAssistantMessageStream: updateAssistantMessageStream,
-                    apiKey: apiKey,
                     openSettings: () => setSettingsOpen(true),
-                    onInvalidApiKey: handleInvalidApiKey,
                     model: model
                 })
             ) : (
